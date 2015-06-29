@@ -70,6 +70,7 @@ p.handleRollOver = function(event) {
 	}
 	else
 		this.alpha = cursize == this.size ? 0.4 : 1;
+	stage1.update();
 };
 
 p.addCircle = function(event){

@@ -2,6 +2,7 @@ var http = require('http'), fs = require('fs'), md5 = require('MD5'),
 	webSocketServer = require('websocket').server, header = require('./header.js');
 var first = true;
 var clients = [];
+var records = [];
 
 var server = http.createServer(function(req, res){
 }).listen(header.port, header.address, function(){
@@ -26,6 +27,17 @@ wsserver.on('request', function(request){
 	console.log('pmap:', pmap);
 	connection.on('message', function(message){
 		var data = JSON.parse(message.utf8Data);
+		if(data.record !== undefined){
+			console.log("rec recvd:"+data.record);
+			records.push(data.record);
+			console.log(records);
+			if(records.length > 10){
+				records.shift();
+			}
+		}
+		if(data.req !== undefined && data.req == "rec"){
+			umap[user].sendUTF(JSON.stringify({req:"rec",rec:records}));
+		}
 		if (pmap[data.user] === undefined){
 			console.log('unpaired', data);
 			if(data.tcode !== undefined){
@@ -35,7 +47,7 @@ wsserver.on('request', function(request){
 				for(var i = 0; i < clients.length; i++){
 					if(clients[i] == user)
 						continue;
-					if(umap[clients[i]].tcode == umap[user].tcode){
+					if(umap[clients[i]].tcode !== undefined && umap[clients[i]].tcode == umap[user].tcode){
 						ind = i;
 					}
 				}

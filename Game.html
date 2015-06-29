@@ -12,6 +12,7 @@
 	<script src="./Components/Button.js"></script>
 	<script src="./Components/Submit.js"></script>
 	<script src="./Components/Markboard.js"></script>
+	<script src="./Components/Record.js"></script>
 	<script src="./header.js"></script>
 
 
@@ -34,6 +35,9 @@
 	socket.onmessage = function (event){
 		var d = JSON.parse(event.data);
 		console.log(d);
+		if(d.req !== undefined && d.req == "rec"){
+			alert(d.rec);
+		}
 		if(d.signal !== undefined && d.signal == "close"){
 			alert("your opponent has left the game.");
 			window.location.reload();
@@ -246,6 +250,7 @@
 		}
 	}
 	socket.onclose = function (event) {
+		socket.send(JSON.stringify({home:homerole}));
 		console.log('closed');
 	}
 	//document.getElementById('send').onclick = function (event) {
@@ -297,6 +302,7 @@
 	var homerole;
 	var tablecode;
 	var banner;
+	var record;
 	function init() {
 		
 		console.log(tablecode);
@@ -330,6 +336,11 @@
 		btype[2].x = canvas1.width / 20 + 105;
 		btype[2].y = canvas1.height / 2 - 15;
 		stage1.addChild(btype[2]);
+		
+		record = new Record();
+		record.x = 4 * canvas1.width / 5;
+		record.y = canvas1.height / 2 - 15;
+		stage1.addChild(record);
 		
 		stage1.update();
 		
@@ -367,7 +378,7 @@
 		return bgd;
 	}
 	
-	function check(x, y, role) {
+	/*function check(x, y, role) {
 		for(var i = 0; i<barriers[role].length; i++){
 			var xdist = Math.abs(x - barriers[role][i].graphics.command.x);
 			var ydist = Math.abs(y - barriers[role][i].graphics.command.y);
@@ -375,14 +386,24 @@
 					return true;
 		}
 		return false;
+	}*/
+	
+	function sendrec() {
+		if(homerole != 1)
+			return;
+		var rec = [];
+		rec[0] = [dats[0][1], dats[1][1]];//scores
+		rec[1] = tablecode;
+		var d = new Date();
+		rec[2] = d.toString();
+		socket.send(JSON.stringify({record:rec}));
 	}
-
 	
 
 </script>
 
 </head>
-<body onload="init()">
+<body onload="init()" onbeforeunload="sendrec()">
 
 <header class="EaselJS">
 	<h1>Interception!</h1>

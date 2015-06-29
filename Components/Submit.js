@@ -363,7 +363,7 @@ p.nextplayer = function () {
 	else{//lose, change side
 		failcount++;
 		if(failcount == 10){
-			alert("everyone has consecutively failed 5 times, the game ends.\nWinner:"+(dats[0][1]>dats[1][1]?"LEFT":"RIGHT"));
+			alert("everyone has consecutively failed 5 times, the game ends.\nWinner:"+(dats[0][1]>dats[1][1]?"LEFT":((dats[0][1]<dats[1][1]?"RIGHT":"EVEN"))));
 			window.location.reload();
 		}
 		role = 1 - role;
@@ -374,6 +374,7 @@ p.nextplayer = function () {
 		text.y = 0;
 		submit.children[1] = text;
 		shields[0].alpha = 0;
+		flags[2] = 2;
 		canvas2.onclick = this.putMissile.bind(this);
 		canvas2.onmouseover = function(){};
 		canvas2.onmousemove = function(){};
