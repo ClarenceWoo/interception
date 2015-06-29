@@ -1,0 +1,393 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Interception</title>
+
+	<link href="./_assets/css/shared.css" rel="stylesheet" type="text/css"/>
+	<link href="./_assets/css/examples.css" rel="stylesheet" type="text/css"/>
+	<script src="./_assets/js/examples.js"></script>
+
+	<script src="./lib/easeljs-NEXT.combined.js"></script>
+	<script src="./Components/Button.js"></script>
+	<script src="./Components/Submit.js"></script>
+	<script src="./Components/Markboard.js"></script>
+	<script src="./header.js"></script>
+
+
+<script id="editable">
+	
+	var addr = 'ws://'+address+':'+port;
+	window.WebSocket = window.WebSocket || window.MozWebSocket;
+	var socket = new WebSocket(addr);
+	var userid;
+	socket.onopen = function (event){
+		socket.send(JSON.stringify("hello"));
+	}
+	socket.onmessage = function (event){
+		var d = JSON.parse(event.data);
+		console.log(d);
+		if(d.signal !== undefined && d.signal == "close"){
+			alert("your opponent has left the game.");
+			window.location.reload();
+		}
+		if(d[0] !== undefined && d[0] == "initbar"){
+			for(var i = 1; i<3;i++)
+			for(var j = 0; j<2;j++){
+				var c = new createjs.Shape();
+				c.graphics.beginFill("#F2EADA").drawCircle(d[i][j][0], d[i][j][1], 15);
+				barriers[i - 1].push(c);
+				stage2.addChild(c);
+			}
+			submit = new Submit(role);
+			submit.x = canvas1.width / 2 - 45;
+			submit.y = canvas1.height / 2 - 15;
+			stage1.addChild(submit);
+			stage1.update();
+			stage2.update();
+		}
+		if(d.step !== undefined){
+			switch(d.step){
+				case 0:	flags[2] = 1;//only role 0(right) will recv this
+						var text = new createjs.Text(d.startrole==0?"LEFT":"RIGHT", "20px Arial", "#000");
+						text.textBaseline = "top";
+						text.textAlign = "center";
+						text.x = (text.getMeasuredWidth()+30) / 2;
+						text.y = 0;
+						submit.children[1] = text;
+						flags[d.startrole] = 1;
+						homerole = 1;
+						console.log("recv step"+d.step);
+						break;
+				case 1:	var c = new createjs.Shape();
+						c.graphics.beginFill("#F2EADA").drawCircle(d.circle.x, d.circle.y, d.circle.radius);
+						barriers[role].push(c);
+						stage2.addChild(c);
+						dats[role][0] -= price[d.circle.radius/15 - 1];
+						stage2.children[role].children[3].text = dats[role][0];
+						stage2.update();
+						console.log("recv step"+d.step);
+						break;
+				case 2:	role = 1 - role;//only role 0(right) will recv this
+						flags[role] = 1;
+						cursize = -1;
+						for (var i = 0; i < 3; i++){
+							btype[i].alpha = 1;
+						}
+						
+						text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+						text.textBaseline = "top";
+						text.textAlign = "center";
+						text.x = (text.getMeasuredWidth()+30) / 2;
+						text.y = 0;
+						submit.children[1] = text;
+						canvas2.onclick = function (){};
+						canvas2.onmouseover = function (){};
+						canvas2.onmousemove = function (){};
+						stage2.update();
+						console.log("recv step"+d.step);
+						break;
+				case 3:	flags[0] = 2;//only role 1(left) will recv this
+						flags[1] = 2;
+						flags[2] = 2;
+						role = 1 - role;
+						cursize = -1;
+						for (var i = 0; i < 3; i++){
+							btype[i].alpha = 1;
+						}
+						text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+						text.textBaseline = "top";
+						text.textAlign = "center";
+						text.x = (text.getMeasuredWidth()+30) / 2;
+						text.y = 0;
+						submit.children[1] = text;
+						
+						canvas2.onmouseover = function (){};
+						canvas2.onmousemove = function (){};
+						canvas2.onclick = submit.putMissile.bind(submit);
+						stage2.update();
+						console.log("recv step"+d.step);
+						break;
+				case 4:	var m = new createjs.Shape();
+						m.graphics.beginFill("#FFFFFF").drawCircle(d.missile.x, d.missile.y, 15);
+						missile = m;
+						missile.status = 0;
+						stage2.addChild(missile);
+						var s1 = new createjs.Shape();
+						s1.graphics.setStrokeStyle(2, 'round', 'round').beginStroke("#293047").arc(d.missile.x, d.missile.y, 20, 0, 2*Math.PI);
+						s1.alpha = 0;
+						shields[0] = s1;
+						stage2.addChild(shields[0]);
+						stage2.update();
+						console.log("recv step"+d.step);
+						break;
+				case 5:	console.log(d.dir);
+						canvas2.onclick = function (){};
+						console.log("ws-h:"+homerole+"r:"+role);
+						missile.status = 0;
+						paused = 0;
+						counted = [[], []];
+						createjs.Ticker.on("tick", function(event){
+							if(paused == 1){
+								return;
+							}
+							missile.graphics.command.x += d.dir.xv;
+							missile.graphics.command.y += d.dir.yv;
+							shields[0].graphics.command.x += d.dir.xv;
+							shields[0].graphics.command.y += d.dir.yv;
+							if((missile.graphics.command.y + 15) >= height){
+								d.dir.yv = 0 - d.dir.yv;
+							}
+							else if((missile.graphics.command.y - 15) <= 0){
+								d.dir.yv = 0 - d.dir.yv;
+							}
+							if(missile.graphics.command.x - 15 < width / 8){
+								d.dir.xv = 0 - d.dir.xv;
+							}
+							else if(missile.graphics.command.x + 15 > 7 * width / 8){
+								d.dir.xv = 0 - d.dir.xv;
+							}
+							var distance;
+							var xdist;
+							var ydist;
+							for(var i = 0; i < barriers[role].length; i++){
+								if(counted[role].indexOf(i) != -1)
+								{
+									continue;
+								}
+								xdist = Math.abs(missile.graphics.command.x - barriers[role][i].graphics.command.x);
+								ydist = Math.abs(missile.graphics.command.y - barriers[role][i].graphics.command.y);
+								distance = Math.sqrt(xdist*xdist + ydist*ydist);
+								if(distance - 15 <= barriers[role][i].graphics.command.radius){
+									counted[role].push(i);
+									if(missile.status < 2)
+										missile.status += 1;
+								}
+							}
+							for(var i = 0; i < barriers[1 - role].length; i++){
+								if(counted[1-role].indexOf(i) != -1)
+								{
+									continue;
+								}
+								xdist = Math.abs(missile.graphics.command.x - barriers[1 - role][i].graphics.command.x);
+								ydist = Math.abs(missile.graphics.command.y - barriers[1 - role][i].graphics.command.y);
+								distance = Math.sqrt(xdist*xdist + ydist*ydist);
+								if(distance - 16 <= barriers[1 - role][i].graphics.command.radius){
+									counted[1-role].push(i);
+									missile.status -= 2;
+								}
+							}
+							switch(missile.status){
+								case 0 :	shields[0].alpha = 0;
+											break;
+								case 1 :	shields[0].alpha = 0.5;
+											break;
+								case 2 :	shields[0].alpha = 1;
+											break;
+								default:	paused = 1;
+											missile.graphics.command.x += d.dir.xv;
+											missile.graphics.command.y += d.dir.yv;
+											shields[0].graphics.command.x += d.dir.xv;
+											shields[0].graphics.command.y += d.dir.yv;
+											alert("missile intercepted!");
+											lastresult = false;
+											createjs.Ticker.removeAllEventListeners("tick");
+											submit.nextplayer();
+											break;
+							}
+							if((role == 0) && (missile.graphics.command.x > 25 * width / 32) ||
+								((role == 1) && (missile.graphics.command.x < 7 * width / 32)) ){
+								paused = 1;
+								dats[role][1] += 1;
+								markboard[role].children[1].text = dats[role][1];
+								console.log(missile.status);
+								alert("success!");
+								lastresult = true;
+								createjs.Ticker.removeAllEventListeners("tick");
+								submit.nextplayer();
+							}
+							stage2.update();
+						});
+						createjs.Ticker.setFPS(30);
+						console.log("recv step"+d.step);
+						break;
+				case 7:	flags[role] = 2;
+						flags[1 - role] = 2;
+						role = 1 - role;
+						cursize = -1;
+						for (var i = 0; i < 3; i++){
+							btype[i].alpha = 1;
+						}
+						text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+						text.textBaseline = "top";
+						text.textAlign = "center";
+						text.x = (text.getMeasuredWidth()+30) / 2;
+						text.y = 0;
+						submit.children[1] = text;
+						stage1.update();
+						canvas2.onclick = submit.putMissile.bind(submit);
+						stage2.update();
+						console.log("recv step"+d.step);
+						break;
+				default:break;
+			}
+		}
+		if(d.from !== undefined){
+			console.log(d.content);
+			userid = d.content;
+			return;
+		}
+	}
+	socket.onclose = function (event) {
+		console.log('closed');
+	}
+	//document.getElementById('send').onclick = function (event) {
+	//	socket.send(JSON.stringify({content:JSON.stringify({content:'send',from:userid}),user:userid}));
+	//}
+	
+	//socket message structure
+	//.step 0 waiting to setting barriers(on player clicked start)
+	//				.startrole
+	//		1 to show setted barriers(one player is setting)
+	//		(recur	.circle(.x,.y,.radius)
+	//		2 change setting player(done-setting player clicked submit)
+	//				null
+	//		3 start putting missile(2 players done setting)
+	//				null
+	//loop on
+	//		4 to show put missile(one player has just put/one player failed)
+	//				.missile(.x,.y)
+	//		5 to show missile moving(one player has emitted missile, pass the dir data)
+	//				.direction(arctan)
+	//		6 to show newly added barriers(one player has won and the current is reputting)
+	//		(recur	.circle(.x,.y,.radius)//reloaded by step 1
+	//		7 to commit reputting(5 is done)
+	//				null
+	
+	var canvas1;
+	var stage1;
+	var canvas2;
+	var stage2;
+	var width;
+	var height;
+	var role;
+	var dats;		//scores and coins
+	var flags;		//current status of game
+	var barriers;
+	var missile;
+	var dirline;	//direction line
+	var counted;	//calcuated barriers in one shooting
+	var shields;
+	var paused;
+	var btype = new Array(3);
+	var cursize;
+	var lastresult;	//result of last shooting win/lose
+	var submit;
+	var markboard = new Array(2);
+	var price = [1, 2, 4];
+	var failcount = 0;
+	var showcircle;
+	var homerole;
+	var tablecode;
+	var banner;
+	function init() {
+		do{
+			tablecode = prompt("please input table number:", "");
+		}while(tablecode == null || tablecode =="");
+		console.log(tablecode);
+		socket.send(JSON.stringify({tcode:tablecode, user:userid}));
+		banner = document.getElementsByTagName('h1')[0];
+		banner.innerHTML += ("table:"+tablecode);
+		role = 0;
+		homerole = 0;
+		//waiting = 1;
+		dats = [[12, 0, []], [12, 0, []]];
+		dats[0][0] -= 3;//first player gets 3 coins fewer;
+		flags = [0, 0, 0];
+		//[2][0=waiting, 1=settingbarrier, 2=puttingmissile, 3=isReputtingMissile]
+		//[0-1][players]
+		barriers = [[], []];
+		
+		counted = [[], []];
+		shields = [];
+		paused = 0;
+		canvas1 = document.getElementById('buttons');
+		stage1 = new createjs.Stage(canvas1);
+		stage1.enableMouseOver();
+		
+		btype[0] = new Button("$"+price[0], "#F2EADA", 1);
+		btype[0].x = canvas1.width / 20 - 45;
+		btype[0].y = canvas1.height / 2 - 15;
+		createjs.Ticker.on("tick", stage1);
+		stage1.addChild(btype[0]);
+		btype[1] = new Button("$"+price[1], "#F2EADA", 2);
+		btype[1].x = canvas1.width / 20 + 15;
+		btype[1].y = canvas1.height / 2 - 15;
+		stage1.addChild(btype[1]);
+		btype[2] = new Button("$"+price[2], "#F2EADA", 3);
+		btype[2].x = canvas1.width / 20 + 105;
+		btype[2].y = canvas1.height / 2 - 15;
+		stage1.addChild(btype[2]);
+		
+		stage1.update();
+		
+		canvas2 = document.getElementById('myCanvas');
+		width = canvas2.width;
+		height = canvas2.height;
+		stage2 = new createjs.Stage(canvas2);
+		stage2.enableMouseOver();
+		
+		markboard[0] = new Markboard(0);
+		markboard[0].x = canvas2.width / 48;
+		markboard[0].y = canvas2.height / 3;
+		stage2.addChild(markboard[0]);
+		
+		markboard[1] = new Markboard(1);
+		markboard[1].x = 43 * canvas2.width / 48;
+		markboard[1].y = canvas2.height / 3;
+		stage2.addChild(markboard[1]);
+		
+		var background = drawBgd(width, height);
+		stage2.addChild(background);
+		
+
+		role = 0;
+		stage2.update();
+		//console.log(background);
+	}
+
+	function drawBgd(w ,h) {
+		var bgd = new createjs.Shape();
+		bgd.graphics.beginFill("#50B7C1").drawRect(w / 8, 0, 3 * w / 32, h);
+		bgd.graphics.beginFill("#50B7C1").drawRect(w / 2, 0, 9 * w / 32, h);
+		bgd.graphics.beginFill("#A03939").drawRect(7 * w / 32, 0, 9 * w / 32, h);
+		bgd.graphics.beginFill("#A03939").drawRect(25 * w / 32, 0, 3 * w / 32, h);
+		return bgd;
+	}
+	
+	function check(x, y, role) {
+		for(var i = 0; i<barriers[role].length; i++){
+			var xdist = Math.abs(x - barriers[role][i].graphics.command.x);
+			var ydist = Math.abs(y - barriers[role][i].graphics.command.y);
+			if(Math.sqrt(xdist*xdist+ydist*ydist) <= 30)
+					return true;
+		}
+		return false;
+	}
+
+	
+
+</script>
+
+</head>
+<body onload="init()">
+
+<header class="EaselJS">
+	<h1>Interception!</h1>
+
+</header>
+<canvas id="buttons" width="960" height="100"></canvas>
+<canvas id="myCanvas" width="960" height="450"></canvas>
+
+</body>
+</html>
