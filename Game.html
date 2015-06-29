@@ -23,6 +23,13 @@
 	var userid;
 	socket.onopen = function (event){
 		socket.send(JSON.stringify("hello"));
+		socket.send(JSON.stringify("state:"+socket.readyState));
+		do{
+			tablecode = prompt("please input table number:", "");
+		}while(tablecode == null || tablecode =="");
+		socket.send(JSON.stringify({tcode:tablecode, user:userid}));
+		banner = document.getElementsByTagName('h1')[0];
+		banner.innerHTML += ("table:"+tablecode);
 	}
 	socket.onmessage = function (event){
 		var d = JSON.parse(event.data);
@@ -291,13 +298,8 @@
 	var tablecode;
 	var banner;
 	function init() {
-		do{
-			tablecode = prompt("please input table number:", "");
-		}while(tablecode == null || tablecode =="");
+		
 		console.log(tablecode);
-		socket.send(JSON.stringify({tcode:tablecode, user:userid}));
-		banner = document.getElementsByTagName('h1')[0];
-		banner.innerHTML += ("table:"+tablecode);
 		role = 0;
 		homerole = 0;
 		//waiting = 1;
