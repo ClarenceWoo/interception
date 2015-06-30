@@ -183,7 +183,7 @@ p.putMissile = function(event){
 		shields[0] = s1;
 		
 		var s2 = new createjs.Shape();
-		s2.graphics.setStrokeStyle(2, 'round', 'round').beginStroke("#293047").arc(missile.graphics.command.x, missile.graphics.command.y, 24, 0, 2*Math.PI);
+		s2.graphics.setStrokeStyle(2, 'round', 'round').beginStroke("#293047").arc(missile.graphics.command.x, missile.graphics.command.y, 22, 0, 2*Math.PI);
 		s2.alpha = 0;
 		shields.push(s2);
 		/*
