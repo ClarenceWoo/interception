@@ -146,6 +146,11 @@
 						s1.alpha = 0;
 						shields[0] = s1;
 						stage2.addChild(shields[0]);
+						var s2 = new createjs.Shape();
+						s2.graphics.setStrokeStyle(2, 'round', 'round').beginStroke("#293047").arc(d.missile.x, d.missile.y, 24, 0, 2*Math.PI);
+						s2.alpha = 0;
+						shields[1] = s2;
+						stage2.addChild(shields[1]);
 						stage2.update();
 						console.log("recv step"+d.step);
 						break;
@@ -163,6 +168,8 @@
 							missile.graphics.command.y += d.dir.yv;
 							shields[0].graphics.command.x += d.dir.xv;
 							shields[0].graphics.command.y += d.dir.yv;
+							shields[1].graphics.command.x += d.dir.xv;
+							shields[1].graphics.command.y += d.dir.yv;
 							if((missile.graphics.command.y + 15) >= height){
 								d.dir.yv = 0 - d.dir.yv;
 							}
@@ -206,17 +213,20 @@
 								}
 							}
 							switch(missile.status){
-								case 0 :	shields[0].alpha = 0;
+								case 0 :	shields[0].alpha = shields[1].alpha = 0;
 											break;
 								case 1 :	shields[0].alpha = 0.5;
+											shields[1].alpha = 0;
 											break;
-								case 2 :	shields[0].alpha = 1;
+								case 2 :	shields[0].alpha = shields[1].alpha =1;
 											break;
 								default:	paused = 1;
 											missile.graphics.command.x += d.dir.xv;
 											missile.graphics.command.y += d.dir.yv;
 											shields[0].graphics.command.x += d.dir.xv;
 											shields[0].graphics.command.y += d.dir.yv;
+											shields[1].graphics.command.x += d.dir.xv;
+											shields[1].graphics.command.y += d.dir.yv;
 											stage2.update();
 											alert("Missile intercepted!");
 											lastresult = false;

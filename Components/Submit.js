@@ -182,18 +182,18 @@ p.putMissile = function(event){
 		s1.alpha = 0;
 		shields[0] = s1;
 		
-		/*var s2 = new createjs.Shape();
-		s2.graphics.setStrokeStyle(2, 'round', 'round').beginStroke("#293047").arc(missile.graphics.command.x, missile.graphics.command.y, 30, 0, 2*Math.PI);
+		var s2 = new createjs.Shape();
+		s2.graphics.setStrokeStyle(2, 'round', 'round').beginStroke("#293047").arc(missile.graphics.command.x, missile.graphics.command.y, 24, 0, 2*Math.PI);
 		s2.alpha = 0;
 		shields.push(s2);
-		
+		/*
 		var s3 = new createjs.Shape();
 		s3.graphics.setStrokeStyle(2, 'round', 'round').beginStroke("#293047").arc(missile.graphics.command.x, missile.graphics.command.y, 40, 0, 2*Math.PI);
 		s3.alpha = 0;
 		shields.push(s3);*/
 		
 		stage2.addChild(shields[0]);
-		//stage2.addChild(shields[1]);
+		stage2.addChild(shields[1]);
 		//stage2.addChild(shields[2]);
 		dirline = new createjs.Shape();
 		var mcenter = new createjs.Point(missile.graphics.command.x, missile.graphics.command.y);
@@ -254,6 +254,8 @@ p.emit = function (event) {
 		}*/
 		shields[0].graphics.command.x += xvelo;
 		shields[0].graphics.command.y += yvelo;
+		shields[1].graphics.command.x += xvelo;
+		shields[1].graphics.command.y += yvelo;
 		if((missile.graphics.command.y + 15) >= height){
 			yvelo = 0 - yvelo;
 		}
@@ -297,12 +299,14 @@ p.emit = function (event) {
 			}
 		}
 		switch(missile.status){
-			case 0 :	shields[0].alpha = 0;//shields[1].alpha = shields[2].alpha = 0;
+			case 0 :	shields[0].alpha = shields[1].alpha = 0 //shields[2].alpha = 0;
 						break;
 			case 1 :	shields[0].alpha = 0.5;
+						shields[1].alpha = 0;
 						//shields[1].alpha = shields[2].alpha = 0;
 						break;
 			case 2 :	shields[0].alpha = 1;
+						shields[1].alpha = 1;
 						//shields[1].alpha = shields[2].alpha = 0;
 						break;
 			/*case 3 :	shields[0].alpha = 1;
@@ -322,6 +326,8 @@ p.emit = function (event) {
 						missile.graphics.command.y += yvelo;
 						shields[0].graphics.command.x += xvelo;
 						shields[0].graphics.command.y += yvelo;
+						shields[1].graphics.command.x += xvelo;
+						shields[1].graphics.command.y += yvelo;
 						stage2.update();
 						alert("Missile intercepted!");
 						lastresult = false;
@@ -350,6 +356,7 @@ p.nextplayer = function () {
 	console.log("next"+lastresult);
 	stage2.removeChild(missile);
 	stage2.removeChild(shields[0]);
+	stage2.removeChild(shields[1]);
 	if(lastresult){//win, loser +3 coins and set barriers
 		failcount = 0;
 		if(dats[role][1] == 3){
