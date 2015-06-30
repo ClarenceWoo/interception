@@ -25,12 +25,17 @@
 	socket.onopen = function (event){
 		socket.send(JSON.stringify("hello"));
 		socket.send(JSON.stringify("state:"+socket.readyState));
-		do{
-			tablecode = prompt("please input table number:", "");
-		}while(tablecode == null || tablecode =="");
+		
+		tablecode = prompt("Please input table code:", "");
+		if(tablecode == null || tablecode ==""){
+			alert("You didn't input a valid table code, please refresh this page and type again.");
+			socket.close();
+			banner.innerHTML = ("Interception! --not connected");
+		}
+		
 		socket.send(JSON.stringify({tcode:tablecode, user:userid}));
 		banner = document.getElementsByTagName('h1')[0];
-		banner.innerHTML = ("Interception! table:"+tablecode);
+		banner.innerHTML = ("Interception! table:"+tablecode+" --waiting for opponent...");
 	}
 	socket.onmessage = function (event){
 		var d = JSON.parse(event.data);
@@ -40,14 +45,14 @@
 			if(d.rec !== undefined){
 				recmes += ("RECENT GAME RECORDS:\n");
 				for(var i = 0; i<d.rec.length; i++){
-					recmes += ((i+1)+": TABLECODE: "+d.rec[i][1]+"\nLEFT: "+d.rec[i][0][0]+" RIGHT: "+d.rec[i][0][1]+"\nENDTIME: "+d.rec[i][2].substring(0,24)+"("+d.rec[i][2].substring(25,33)+")\n\n");
+					recmes += ((i+1)+":  TABLECODE: "+d.rec[i][1]+"\nLEFT: "+d.rec[i][0][0]+"                      RIGHT: "+d.rec[i][0][1]+"\nENDTIME: "+d.rec[i][2].substring(0,24)+"("+d.rec[i][2].substring(25,33)+")\n\n");
 				}
 			}
 			console.log(recmes);
 			alert(recmes);
 		}
 		if(d.signal !== undefined && d.signal == "close"){
-			alert("your opponent has left the game.");
+			alert("Your opponent has left the game. This page will be reloaded.");
 			window.location.reload();
 		}
 		if(d[0] !== undefined && d[0] == "initbar"){
@@ -61,6 +66,7 @@
 			submit = new Submit(role);
 			submit.x = canvas1.width / 2 - 45;
 			submit.y = canvas1.height / 2 - 15;
+			banner.innerHTML = ("Interception! table:"+tablecode+" --gaming");
 			stage1.addChild(submit);
 			stage1.update();
 			stage2.update();
@@ -68,7 +74,7 @@
 		if(d.step !== undefined){
 			switch(d.step){
 				case 0:	flags[2] = 1;//only role 0(right) will recv this
-						var text = new createjs.Text(d.startrole==0?"LEFT":"RIGHT", "20px Arial", "#000");
+						var text = new createjs.Text(d.startrole==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 						text.textBaseline = "top";
 						text.textAlign = "center";
 						text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
@@ -76,6 +82,9 @@
 						submit.children[1] = text;
 						flags[d.startrole] = 1;
 						homerole = 1;
+						dats[0][0] -= 2;
+						stage2.children[role].children[3].text = "$"+dats[role][0];
+						stage2.update();
 						console.log("recv step"+d.step);
 						break;
 				case 1:	var c = new createjs.Shape();
@@ -83,7 +92,7 @@
 						barriers[role].push(c);
 						stage2.addChild(c);
 						dats[role][0] -= price[d.circle.radius/15 - 1];
-						stage2.children[role].children[3].text = dats[role][0];
+						stage2.children[role].children[3].text = "$"+dats[role][0];
 						stage2.update();
 						console.log("recv step"+d.step);
 						break;
@@ -94,7 +103,7 @@
 							btype[i].alpha = 1;
 						}
 						
-						text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+						text = new createjs.Text(role==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 						text.textBaseline = "top";
 						text.textAlign = "center";
 						text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
@@ -114,7 +123,7 @@
 						for (var i = 0; i < 3; i++){
 							btype[i].alpha = 1;
 						}
-						text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+						text = new createjs.Text(role==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 						text.textBaseline = "top";
 						text.textAlign = "center";
 						text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
@@ -208,7 +217,8 @@
 											missile.graphics.command.y += d.dir.yv;
 											shields[0].graphics.command.x += d.dir.xv;
 											shields[0].graphics.command.y += d.dir.yv;
-											alert("missile intercepted!");
+											stage2.update();
+											alert("Missile intercepted!");
 											lastresult = false;
 											createjs.Ticker.removeAllEventListeners("tick");
 											submit.nextplayer();
@@ -220,7 +230,7 @@
 								dats[role][1] += 1;
 								markboard[role].children[1].text = dats[role][1];
 								console.log(missile.status);
-								alert("success!");
+								alert("Goal!");
 								lastresult = true;
 								createjs.Ticker.removeAllEventListeners("tick");
 								submit.nextplayer();
@@ -232,12 +242,13 @@
 						break;
 				case 7:	flags[role] = 2;
 						flags[1 - role] = 2;
+						flags[2] = 2;
 						role = 1 - role;
 						cursize = -1;
 						for (var i = 0; i < 3; i++){
 							btype[i].alpha = 1;
 						}
-						text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+						text = new createjs.Text(role==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 						text.textBaseline = "top";
 						text.textAlign = "center";
 						text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
@@ -318,7 +329,6 @@
 		homerole = 0;
 		//waiting = 1;
 		dats = [[12, 0, []], [12, 0, []]];
-		dats[0][0] -= 3;//first player gets 3 coins fewer;
 		flags = [0, 0, 0];
 		//[2][0=waiting, 1=settingbarrier, 2=puttingmissile, 3=isReputtingMissile]
 		//[0-1][players]
@@ -359,12 +369,12 @@
 		stage2.enableMouseOver();
 		
 		markboard[0] = new Markboard(0);
-		markboard[0].x = canvas2.width / 48;
+		markboard[0].x = canvas2.width / 96;
 		markboard[0].y = canvas2.height / 3;
 		stage2.addChild(markboard[0]);
 		
 		markboard[1] = new Markboard(1);
-		markboard[1].x = 43 * canvas2.width / 48;
+		markboard[1].x = 85 * canvas2.width / 96;
 		markboard[1].y = canvas2.height / 3;
 		stage2.addChild(markboard[1]);
 		
@@ -385,16 +395,6 @@
 		bgd.graphics.beginFill("#FFDB97").drawRect(25 * w / 32, 0, 3 * w / 32, h);
 		return bgd;
 	}
-	
-	/*function check(x, y, role) {
-		for(var i = 0; i<barriers[role].length; i++){
-			var xdist = Math.abs(x - barriers[role][i].graphics.command.x);
-			var ydist = Math.abs(y - barriers[role][i].graphics.command.y);
-			if(Math.sqrt(xdist*xdist+ydist*ydist) <= 30)
-					return true;
-		}
-		return false;
-	}*/
 	
 	function sendrec() {
 		if(homerole != 1)

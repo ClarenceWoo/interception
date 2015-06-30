@@ -10,7 +10,7 @@ function Submit(role) {
 var p = createjs.extend(Submit, createjs.Container);
 
 p.setup = function () {
-	var text = new createjs.Text((flags[2] == 0)?"START":(this.role==0?"LEFT":"RIGHT"), "20px Arial", "#000");
+	var text = new createjs.Text((flags[2] == 0)?"START":(this.role==0?"LEFT":"RIGHT"), "25px Consolas", "#000");
 	text.textBaseline = "top";
 	text.textAlign = "center";
 	
@@ -44,20 +44,22 @@ p.setup = function () {
 	this.count = 0;
 } ;
 p.handleClick = function (event) {
-	//alert("You clicked on a button: "+this.role);
 	if(flags[2] == 0){//isWaiting
+		//send to the other player
+		socket.send(JSON.stringify({content:JSON.stringify({step:0,startrole:role}),user:userid}));
+		
+		dats[0][0] -= 2;
+		stage2.children[role].children[3].text = "$"+dats[role][0];
 		flags[2] = 1;
 		console.log("started"+role);
-		text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+		text = new createjs.Text(role==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 		text.textBaseline = "top";
 		text.textAlign = "center";
 		text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 		text.y = 0;
 		submit.children[1] = text;
 		flags[role] = 1;
-		
-		//send to the other player
-		socket.send(JSON.stringify({content:JSON.stringify({step:0,startrole:role}),user:userid}));
+		stage2.update();
 		
 		return;
 	}
@@ -73,7 +75,7 @@ p.handleClick = function (event) {
 				btype[i].alpha = 1;
 			}
 			
-			text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+			text = new createjs.Text(role==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 			text.textBaseline = "top";
 			text.textAlign = "center";
 			text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
@@ -99,7 +101,7 @@ p.handleClick = function (event) {
 				btype[i].alpha = 1;
 			}
 			
-			text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+			text = new createjs.Text(role==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 			text.textBaseline = "top";
 			text.textAlign = "center";
 			text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
@@ -124,6 +126,7 @@ p.handleClick = function (event) {
 		if(role != homerole){
 			return;
 		}
+		flags[2] = 2;
 		flags[role] = 2;
 		flags[1 - role] = 2;
 		role = 1 - role;
@@ -132,7 +135,7 @@ p.handleClick = function (event) {
 			btype[i].alpha = 1;
 		}
 		//flags[role] = 4;
-		text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+		text = new createjs.Text(role==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 		text.textBaseline = "top";
 		text.textAlign = "center";
 		text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
@@ -152,8 +155,9 @@ p.handleClick = function (event) {
 	
 } ;
 
-p.handleRollOver = function(event) {       
-	this.alpha = event.type == "rollover" ? 0.4 : 1;
+p.handleRollOver = function(event) {
+	this.alpha = (homerole!=role || flags[2]==2)?1:(event.type == "rollover" ? 0.4 : 1);
+	stage1.update();
 };
 
 p.putMissile = function(event){
@@ -164,7 +168,7 @@ p.putMissile = function(event){
 	if((Math.abs(event.offsetX - width / 2) + 15)>(3*width/8) ||
 		(Math.abs(event.offsetX - width / 2) - 15)<(9*width/32) ||
 		(role == 0) != (event.offsetX < width / 2)){
-		alert("the missile will cross the boundary!");
+		alert("The missile will cross the boundary!");
 		return;
 	}
 	else{
@@ -318,7 +322,8 @@ p.emit = function (event) {
 						missile.graphics.command.y += yvelo;
 						shields[0].graphics.command.x += xvelo;
 						shields[0].graphics.command.y += yvelo;
-						alert("missile intercepted!");
+						stage2.update();
+						alert("Missile intercepted!");
 						lastresult = false;
 						createjs.Ticker.removeAllEventListeners("tick");
 						p.nextplayer();
@@ -330,7 +335,7 @@ p.emit = function (event) {
 			dats[role][1] += 1;
 			markboard[role].children[1].text = dats[role][1];
 			console.log(missile.status);
-			alert("success!");
+			alert("Goal!");
 			lastresult = true;
 			createjs.Ticker.removeAllEventListeners("tick");
 			p.nextplayer();
@@ -353,10 +358,10 @@ p.nextplayer = function () {
 		}
 		role = 1 - role;
 		dats[role][0] += 3;
-		markboard[role].children[3].text = dats[role][0];
+		markboard[role].children[3].text = "$"+dats[role][0];
 		flags[role] = 1;
 		flags[2] = 3;
-		text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+		text = new createjs.Text(role==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 		text.textBaseline = "top";
 		text.textAlign = "center";
 		text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
@@ -372,11 +377,11 @@ p.nextplayer = function () {
 	else{//lose, change side
 		failcount++;
 		if(failcount == 10){
-			alert("everyone has consecutively failed 5 times, the game ends.\nWinner:"+(dats[0][1]>dats[1][1]?"LEFT":((dats[0][1]<dats[1][1]?"RIGHT":"EVEN"))));
+			alert("Everyone has consecutively failed 5 times, the game ends.\nWinner:"+(dats[0][1]>dats[1][1]?"LEFT":((dats[0][1]<dats[1][1]?"RIGHT":"EVEN"))));
 			window.location.reload();
 		}
 		role = 1 - role;
-		text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
+		text = new createjs.Text(role==0?"LEFT":"RIGHT", "25px Consolas", "#000");
 		text.textBaseline = "top";
 		text.textAlign = "center";
 		text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);

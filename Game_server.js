@@ -2,6 +2,7 @@ var http = require('http'), fs = require('fs'), md5 = require('MD5'),
 	webSocketServer = require('websocket').server, header = require('./header.js');
 var first = true;
 var clients = [];
+var tabledclients = [];
 var records = [];
 readrec();
 
@@ -29,9 +30,9 @@ wsserver.on('request', function(request){
 	connection.on('message', function(message){
 		var data = JSON.parse(message.utf8Data);
 		if(data.record !== undefined){
-			console.log("rec recvd:"+data.record);
+			//console.log("rec recvd:"+data.record);
 			records.push(data.record);
-			console.log(records);
+			//console.log(records);
 			if(records.length > 5){
 				records.shift();
 			}
@@ -44,43 +45,51 @@ wsserver.on('request', function(request){
 			console.log('unpaired', data);
 			if(data.tcode !== undefined){
 				console.log("tcode:"+data.tcode);
+				tabledclients.push(user);
+				console.log("cb:"+clients);
+				console.log("tb:"+tabledclients);
 				umap[user].tcode = data.tcode;
 				var ind = -1;
-				for(var i = 0; i < clients.length; i++){
-					if(clients[i] == user)
+				for(var i = 0; i < tabledclients.length; i++){
+					if(tabledclients[i] == user)
 						continue;
-					if(umap[clients[i]].tcode !== undefined && umap[clients[i]].tcode == umap[user].tcode){
+					if(umap[tabledclients[i]].tcode !== undefined && umap[tabledclients[i]].tcode == umap[user].tcode){
 						ind = i;
 						break;
 					}
 				}
 				if(ind != -1){
-					pmap[user] = clients[ind];
-					pmap[clients[ind]] = user;
+					pmap[user] = tabledclients[ind];
+					pmap[tabledclients[ind]] = user;
 					//generate 2*2 random barriers
 					var bar = ["initbar", [],[]];
-					for(var j = 1; j < 3; j++)
-					for(var k = 0; k < 2; k++)
-					{
-						var x, y;
-						do{
-							x = Math.random();
-							x *= (9*960/32 - 30);
-							x += 7*960/32 +15;
-							x = (j == 1)?x:(960-x);
-							y = Math.random();
-							y *= (450 - 30)
-							y += 15;}while((k != 0 ) && (checkx(x, y, j, bar)));
-						bar[j][k] = [x, y];
+					for(var j = 1; j < 3; j++){
+						for(var k = 0; k < 2; k++){
+							var x, y;
+							do{
+								x = Math.random();
+								x *= (9*960/32 - 30);
+								x += 7*960/32 +15;
+								x = (j == 1)?x:(960-x);
+								y = Math.random();
+								y *= (450 - 30)
+								y += 15;}while((k != 0 ) && (checkx(x, y, j, bar)));
+							bar[j][k] = [x, y];
+						}
 					}
 					console.log("pairing:"+user+" "+pmap[user]);
 					umap[user].sendUTF(JSON.stringify(bar));
 					umap[pmap[user]].sendUTF(JSON.stringify(bar));
-					clients.splice(ind);
-					clients.splice(clients.indexOf(user));
+					clients.splice(clients.indexOf(pmap[user]), 1);
+					clients.splice(clients.indexOf(user), 1);
+					tabledclients.splice(ind, 1);
+					tabledclients.splice(tabledclients.indexOf(user), 1);
 				}
 				else
 					console.log("no pair");
+					
+				console.log("c:"+clients);
+				console.log("t:"+tabledclients);
 			}
 		}
 		else{
@@ -90,10 +99,13 @@ wsserver.on('request', function(request){
 	});
 	connection.on('close', function(connection){
 		var left = pmap[user];
-		if (left === undefined)
-			clients.shift();
+		if (left === undefined){
+			if(clients.indexOf(user)>=0)
+				clients.splice(clients.indexOf(user), 1);
+			if(tabledclients.indexOf(user)>=0)
+				tabledclients.splice(tabledclients.indexOf(user), 1);
+		}
 		else{
-			clients.push(left);
 			delete pmap[user];
 			delete pmap[left];
 			umap[left].sendUTF(JSON.stringify({signal:"close"}));
@@ -114,7 +126,6 @@ function checkx(x, y, player, bar) {
 function readrec(){
 	var filerecs;
 	filerecs = fs.readFileSync('./recs.txt', 'utf-8');
-	console.log("fr:"+filerecs);
 	records = (JSON.parse(filerecs).content);
 };
 function writerec(data) {

@@ -8,7 +8,7 @@ function Record() {
 var p = createjs.extend(Record, createjs.Container);
 
 p.setup = function () {
-	var text = new createjs.Text("RECORD", "20px Arial", "#000");
+	var text = new createjs.Text("RECORD", "25px Consolas", "#000");
 	text.textBaseline = "top";
 	text.textAlign = "center";
 	text.x = (text.getMeasuredWidth()+30)/2;

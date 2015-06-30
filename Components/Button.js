@@ -13,7 +13,7 @@ var p = createjs.extend(Button, createjs.Container);
 
 
 p.setup = function() {
-	var text = new createjs.Text(this.label, "20px Arial", "#000");
+	var text = new createjs.Text(this.label, "20px Consolas", "#000");
 	text.textBaseline = "top";
 	text.textAlign = "center";
 	
@@ -61,15 +61,7 @@ p.handleClick = function (event) {
 } ;
 
 p.handleRollOver = function(event) {
-	if(role != homerole){
-		return;
-	}
-	if(event.type == "rollover"){
-		this.alpha = 0.4;
-		return;
-	}
-	else
-		this.alpha = cursize == this.size ? 0.4 : 1;
+	this.alpha = (homerole!=role || flags[2]==2)?1:(event.type == "rollover" ? 0.4 : 1);
 	stage1.update();
 };
 
@@ -78,20 +70,20 @@ p.addCircle = function(event){
 		return;
 	}
 	if(((event.offsetX - (width / 2)) > 0) != role){
-		alert("only put barriers in your area!");
+		alert("Only put barriers in your area!");
 		return;
 	}
 	if(Math.abs(event.offsetX - (width / 2)) < this.size * 15 ||
 		(Math.abs(event.offsetX - (width / 2)) + this.size * 15) > 9 * width / 32){
-		alert("the barrier will cross the boundary!");
+		alert("The barrier will cross the boundary!");
 		return;
 	}
 	if(dats[role][0] < price[this.size - 1]){
-		alert("insufficient coins!");
+		alert("Insufficient coins!");
 		return;
 	}
 	dats[role][0] -= price[this.size - 1];
-	stage2.children[role].children[3].text = dats[role][0];
+	stage2.children[role].children[3].text = "$"+dats[role][0];
 	var c = new createjs.Shape();
 	c.graphics.beginFill("#FE979C").drawCircle(event.offsetX, event.offsetY, this.size * 15);
 	barriers[role].push(c);
