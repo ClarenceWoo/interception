@@ -14,6 +14,15 @@ p.setup = function () {
 	text.textBaseline = "top";
 	text.textAlign = "center";
 	
+	//var img = new Image();
+	//img.src = "./_assets/int/dir.png";
+	//console.log("s:"+img);
+	
+	//this.addChild(img);
+	//stage1.addChild(img);
+	//console.log("s"+this);
+	//console.log("ss"+stage1);
+	
 	var width = text.getMeasuredWidth()+30;
 	var height = text.getMeasuredHeight()+20;
 	
@@ -21,7 +30,7 @@ p.setup = function () {
 	text.y = 0;
 	
 	var background = new createjs.Shape();
-	background.graphics.beginFill("#888").drawRoundRect(-5,-10,90,45,10);
+	background.graphics.beginFill("#888").drawRoundRect(5,-10,90,45,10);
 	
 	this.addChild(background, text); 
 	this.on("click", this.handleClick);
@@ -42,7 +51,7 @@ p.handleClick = function (event) {
 		text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
 		text.textBaseline = "top";
 		text.textAlign = "center";
-		text.x = (text.getMeasuredWidth()+30) / 2;
+		text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 		text.y = 0;
 		submit.children[1] = text;
 		flags[role] = 1;
@@ -67,7 +76,7 @@ p.handleClick = function (event) {
 			text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
 			text.textBaseline = "top";
 			text.textAlign = "center";
-			text.x = (text.getMeasuredWidth()+30) / 2;
+			text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 			text.y = 0;
 			submit.children[1] = text;
 			canvas2.onclick = function (){};
@@ -93,7 +102,7 @@ p.handleClick = function (event) {
 			text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
 			text.textBaseline = "top";
 			text.textAlign = "center";
-			text.x = (text.getMeasuredWidth()+30) / 2;
+			text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 			text.y = 0;
 			submit.children[1] = text;
 			
@@ -126,7 +135,7 @@ p.handleClick = function (event) {
 		text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
 		text.textBaseline = "top";
 		text.textAlign = "center";
-		text.x = (text.getMeasuredWidth()+30) / 2;
+		text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 		text.y = 0;
 		this.children[1] = text;
 		stage1.update();
@@ -328,7 +337,7 @@ p.emit = function (event) {
 		}
 		stage2.update();
 	});
-	createjs.Ticker.setFPS(30);
+	createjs.Ticker.setFPS(60);
 	
 } ;
 
@@ -350,7 +359,7 @@ p.nextplayer = function () {
 		text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
 		text.textBaseline = "top";
 		text.textAlign = "center";
-		text.x = (text.getMeasuredWidth()+30) / 2;
+		text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 		text.y = 0;
 		submit.children[1] = text;
 		canvas2.onclick = function (){};
@@ -370,7 +379,7 @@ p.nextplayer = function () {
 		text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
 		text.textBaseline = "top";
 		text.textAlign = "center";
-		text.x = (text.getMeasuredWidth()+30) / 2;
+		text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 		text.y = 0;
 		submit.children[1] = text;
 		shields[0].alpha = 0;

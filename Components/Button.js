@@ -93,7 +93,7 @@ p.addCircle = function(event){
 	dats[role][0] -= price[this.size - 1];
 	stage2.children[role].children[3].text = dats[role][0];
 	var c = new createjs.Shape();
-	c.graphics.beginFill("#F2EADA").drawCircle(event.offsetX, event.offsetY, this.size * 15);
+	c.graphics.beginFill("#FE979C").drawCircle(event.offsetX, event.offsetY, this.size * 15);
 	barriers[role].push(c);
 	stage2.addChild(c);
 	stage2.removeChild(showcircle);
@@ -116,7 +116,7 @@ p.showCircle = function (event) {
 	}
 	stage2.removeChild(showcircle);
 	showcircle = new createjs.Shape();
-	showcircle.graphics.beginFill("#F2EADA").drawCircle(event.offsetX, event.offsetY, this.size * 15);
+	showcircle.graphics.beginFill("#FE979C").drawCircle(event.offsetX, event.offsetY, this.size * 15);
 	showcircle.alpha = 1;
 	stage2.addChild(showcircle);
 	if(((event.offsetX - (width / 2)) > 0) != role){

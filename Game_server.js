@@ -3,6 +3,7 @@ var http = require('http'), fs = require('fs'), md5 = require('MD5'),
 var first = true;
 var clients = [];
 var records = [];
+readrec();
 
 var server = http.createServer(function(req, res){
 }).listen(header.port, header.address, function(){
@@ -31,9 +32,10 @@ wsserver.on('request', function(request){
 			console.log("rec recvd:"+data.record);
 			records.push(data.record);
 			console.log(records);
-			if(records.length > 10){
+			if(records.length > 5){
 				records.shift();
 			}
+			writerec();
 		}
 		if(data.req !== undefined && data.req == "rec"){
 			umap[user].sendUTF(JSON.stringify({req:"rec",rec:records}));
@@ -49,6 +51,7 @@ wsserver.on('request', function(request){
 						continue;
 					if(umap[clients[i]].tcode !== undefined && umap[clients[i]].tcode == umap[user].tcode){
 						ind = i;
+						break;
 					}
 				}
 				if(ind != -1){
@@ -107,4 +110,14 @@ function checkx(x, y, player, bar) {
 			return true;
 	}
 	return false;
+};
+function readrec(){
+	var filerecs;
+	filerecs = fs.readFileSync('./recs.txt', 'utf-8');
+	console.log("fr:"+filerecs);
+	records = (JSON.parse(filerecs).content);
+};
+function writerec(data) {
+	var datastream = JSON.stringify({content:records});
+	fs.writeFileSync('./recs.txt', datastream);
 }

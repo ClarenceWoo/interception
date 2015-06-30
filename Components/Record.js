@@ -14,6 +14,13 @@ p.setup = function () {
 	text.x = (text.getMeasuredWidth()+30)/2;
 	text.y = 0;
 	
+	//var img = new Image();
+	//img.src = "./_assets/int/markboard.png";
+	//console.log(img);
+	
+	//stage1.addChild(img);
+	//console.log(stage1);
+	
 	var background = new createjs.Shape();
 	background.graphics.beginFill("#888").drawRoundRect(-5,-10,120,45,10);
 	

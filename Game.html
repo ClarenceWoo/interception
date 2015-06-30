@@ -30,13 +30,21 @@
 		}while(tablecode == null || tablecode =="");
 		socket.send(JSON.stringify({tcode:tablecode, user:userid}));
 		banner = document.getElementsByTagName('h1')[0];
-		banner.innerHTML += ("table:"+tablecode);
+		banner.innerHTML = ("Interception! table:"+tablecode);
 	}
 	socket.onmessage = function (event){
 		var d = JSON.parse(event.data);
 		console.log(d);
 		if(d.req !== undefined && d.req == "rec"){
-			alert(d.rec);
+			var recmes = "";
+			if(d.rec !== undefined){
+				recmes += ("RECENT GAME RECORDS:\n");
+				for(var i = 0; i<d.rec.length; i++){
+					recmes += ((i+1)+": TABLECODE: "+d.rec[i][1]+"\nLEFT: "+d.rec[i][0][0]+" RIGHT: "+d.rec[i][0][1]+"\nENDTIME: "+d.rec[i][2].substring(0,24)+"("+d.rec[i][2].substring(25,33)+")\n\n");
+				}
+			}
+			console.log(recmes);
+			alert(recmes);
 		}
 		if(d.signal !== undefined && d.signal == "close"){
 			alert("your opponent has left the game.");
@@ -46,7 +54,7 @@
 			for(var i = 1; i<3;i++)
 			for(var j = 0; j<2;j++){
 				var c = new createjs.Shape();
-				c.graphics.beginFill("#F2EADA").drawCircle(d[i][j][0], d[i][j][1], 15);
+				c.graphics.beginFill("#FE979C").drawCircle(d[i][j][0], d[i][j][1], 15);
 				barriers[i - 1].push(c);
 				stage2.addChild(c);
 			}
@@ -63,7 +71,7 @@
 						var text = new createjs.Text(d.startrole==0?"LEFT":"RIGHT", "20px Arial", "#000");
 						text.textBaseline = "top";
 						text.textAlign = "center";
-						text.x = (text.getMeasuredWidth()+30) / 2;
+						text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 						text.y = 0;
 						submit.children[1] = text;
 						flags[d.startrole] = 1;
@@ -71,7 +79,7 @@
 						console.log("recv step"+d.step);
 						break;
 				case 1:	var c = new createjs.Shape();
-						c.graphics.beginFill("#F2EADA").drawCircle(d.circle.x, d.circle.y, d.circle.radius);
+						c.graphics.beginFill("#FE979C").drawCircle(d.circle.x, d.circle.y, d.circle.radius);
 						barriers[role].push(c);
 						stage2.addChild(c);
 						dats[role][0] -= price[d.circle.radius/15 - 1];
@@ -89,7 +97,7 @@
 						text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
 						text.textBaseline = "top";
 						text.textAlign = "center";
-						text.x = (text.getMeasuredWidth()+30) / 2;
+						text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 						text.y = 0;
 						submit.children[1] = text;
 						canvas2.onclick = function (){};
@@ -109,7 +117,7 @@
 						text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
 						text.textBaseline = "top";
 						text.textAlign = "center";
-						text.x = (text.getMeasuredWidth()+30) / 2;
+						text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 						text.y = 0;
 						submit.children[1] = text;
 						
@@ -219,7 +227,7 @@
 							}
 							stage2.update();
 						});
-						createjs.Ticker.setFPS(30);
+						createjs.Ticker.setFPS(60);
 						console.log("recv step"+d.step);
 						break;
 				case 7:	flags[role] = 2;
@@ -232,7 +240,7 @@
 						text = new createjs.Text(role==0?"LEFT":"RIGHT", "20px Arial", "#000");
 						text.textBaseline = "top";
 						text.textAlign = "center";
-						text.x = (text.getMeasuredWidth()+30) / 2;
+						text.x = (text.getMeasuredWidth()+30) / 2 + (text.text=="LEFT"?5:0);
 						text.y = 0;
 						submit.children[1] = text;
 						stage1.update();
@@ -323,16 +331,16 @@
 		stage1 = new createjs.Stage(canvas1);
 		stage1.enableMouseOver();
 		
-		btype[0] = new Button("$"+price[0], "#F2EADA", 1);
+		btype[0] = new Button("$"+price[0], "#FE979C", 1);
 		btype[0].x = canvas1.width / 20 - 45;
 		btype[0].y = canvas1.height / 2 - 15;
 		createjs.Ticker.on("tick", stage1);
 		stage1.addChild(btype[0]);
-		btype[1] = new Button("$"+price[1], "#F2EADA", 2);
+		btype[1] = new Button("$"+price[1], "#FE979C", 2);
 		btype[1].x = canvas1.width / 20 + 15;
 		btype[1].y = canvas1.height / 2 - 15;
 		stage1.addChild(btype[1]);
-		btype[2] = new Button("$"+price[2], "#F2EADA", 3);
+		btype[2] = new Button("$"+price[2], "#FE979C", 3);
 		btype[2].x = canvas1.width / 20 + 105;
 		btype[2].y = canvas1.height / 2 - 15;
 		stage1.addChild(btype[2]);
@@ -371,10 +379,10 @@
 
 	function drawBgd(w ,h) {
 		var bgd = new createjs.Shape();
-		bgd.graphics.beginFill("#50B7C1").drawRect(w / 8, 0, 3 * w / 32, h);
-		bgd.graphics.beginFill("#50B7C1").drawRect(w / 2, 0, 9 * w / 32, h);
-		bgd.graphics.beginFill("#A03939").drawRect(7 * w / 32, 0, 9 * w / 32, h);
-		bgd.graphics.beginFill("#A03939").drawRect(25 * w / 32, 0, 3 * w / 32, h);
+		bgd.graphics.beginFill("#90F3EC").drawRect(w / 8, 0, 3 * w / 32, h);
+		bgd.graphics.beginFill("#90F3EC").drawRect(w / 2, 0, 9 * w / 32, h);
+		bgd.graphics.beginFill("#FFDB97").drawRect(7 * w / 32, 0, 9 * w / 32, h);
+		bgd.graphics.beginFill("#FFDB97").drawRect(25 * w / 32, 0, 3 * w / 32, h);
 		return bgd;
 	}
 	
@@ -406,7 +414,7 @@
 <body onload="init()" onbeforeunload="sendrec()">
 
 <header class="EaselJS">
-	<h1>Interception!</h1>
+	<h1>Interception! --not connected</h1>
 
 </header>
 <canvas id="buttons" width="960" height="100"></canvas>
