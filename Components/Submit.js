@@ -379,6 +379,7 @@ p.nextplayer = function () {
 		canvas2.onmousemove = function(){};
 		stage1.update();
 		shields[0].alpha = 0;
+		shields[1].alpha = 0;
 		stage2.update();
 	}
 	else{//lose, change side
@@ -395,6 +396,7 @@ p.nextplayer = function () {
 		text.y = 0;
 		submit.children[1] = text;
 		shields[0].alpha = 0;
+		shileds[1].alpha = 0;
 		flags[2] = 2;
 		canvas2.onclick = this.putMissile.bind(this);
 		canvas2.onmouseover = function(){};
